@@ -3,7 +3,7 @@ import bodyParser from 'body-parser'
 import routes from './routes'
 
 const app = express()
-const port = 8082
+const port = 3000
 
 // middleware
 app.use(bodyParser.json())
