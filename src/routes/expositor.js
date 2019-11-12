@@ -41,7 +41,7 @@ routerExpositor.get('/', (req, res) => {
     });
 })
 
-// Charla por Id
+// expositores por Id
 routerExpositor.get('/:id', (req, res) => { 
     connection.query('SELECT * from expositor Where id=?',[req.params.id], function(err, rows, fields) {
         if (err) {
@@ -95,6 +95,7 @@ routerExpositor.post('/', (req, res) => {
 
 })
 
+// Actualizar Expositor
 routerExpositor.put('/:id', (req, res) => {
     var id = req.params.id
     var cuerpo = req.body
