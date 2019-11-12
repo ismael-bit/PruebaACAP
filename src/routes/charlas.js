@@ -31,7 +31,31 @@ routerCharla.get('/', (req, res) => {
                 charlas.push({ 
                     id: c.id,
                     name : c.nombre, 
-                    hora : c.hora
+                    hora : c.hora,
+                    tags: c.tags,
+                    expositor_id: c.expositor_id
+                 })
+            });
+            res.setHeader('Content-Type', 'application/json')
+            res.send(JSON.stringify(charlas)); 
+        }
+    });
+})
+
+// Charla por Id
+routerCharla.get('/:id', (req, res) => { 
+    connection.query('SELECT * from charla Where id=?',[req.params.id], function(err, rows, fields) {
+        if (err) {
+            res.send('Error '+err);
+        } else {
+            var charlas = []
+            rows.forEach(c => {
+                charlas.push({ 
+                    id: c.id,
+                    name : c.nombre, 
+                    hora : c.hora,
+                    tags: c.tags,
+                    expositor_id: c.expositor_id
                  })
             });
             res.setHeader('Content-Type', 'application/json')
@@ -41,6 +65,7 @@ routerCharla.get('/', (req, res) => {
     });
 })
 
+// Registrar Charla
 routerCharla.post('/', (req, res) => {
 
     if(!req.body.nombre || !req.body.hora || req.body.expositor_id==0) {
@@ -51,9 +76,9 @@ routerCharla.post('/', (req, res) => {
         };
        }
 
-    var params = [req.body.nombre, req.body.hora, req.body.expositor_id];
+    var params = [req.body.nombre, req.body.tags, req.body.expositor_id, req.body.hora];
 
-    connection.query('INSERT INTO charla(nombre, hora, expositor_id) VALUES(?,?,?)',params, function(err, rows, fields) {
+    connection.query('INSERT INTO charla(nombre, tags, expositor_id, hora) VALUES(?,?,?,?)',params, function(err, rows, fields) {
         if (err) {
             respuesta = {
                 error: true,
@@ -84,14 +109,14 @@ routerCharla.put('/:id', (req, res) => {
         };
        }
 
-    var params = [cuerpo.nombre, cuerpo.hora, cuerpo.expositor_id,id];
-    var strUpdate = 'UPDATE charla SET  nombre = ?, hora = ?, expositor_id = ? WHERE id = ?'
+    var params = [cuerpo.nombre,cuerpo.tags, cuerpo.hora, cuerpo.expositor_id,id];
+    var strUpdate = 'UPDATE charla SET  nombre = ?,tags = ?, hora = ?, expositor_id = ? WHERE id = ?'
 
     connection.query(strUpdate,params, function(err, rows, fields) {
         if (err) {
             respuesta = {
                 error: true,
-                codigo: 500,
+                codigo: 500, 
                 mensaje: 'Error Interno' + err
                };
         } else {
@@ -106,24 +131,6 @@ routerCharla.put('/:id', (req, res) => {
 
 })
 
-routerCharla.get('/:id', (req, res) => { 
-    connection.query('SELECT * from charla Where id=?',[req.params.id], function(err, rows, fields) {
-        if (err) {
-            res.send('Error '+err);
-        } else {
-            var charlas = []
-            rows.forEach(c => {
-                charlas.push({ 
-                    id: c.id,
-                    name : c.nombre, 
-                    hora : c.hora
-                 })
-            });
-            res.setHeader('Content-Type', 'application/json')
-            res.send(JSON.stringify(charlas)); 
-            // console.log('The solution is: ', rows[0].nombre);
-        }
-    });
-})
+
 
 export default routerCharla;
