@@ -145,4 +145,36 @@ routerExpositor2.put('/:id', (req, res) => {
 
 })
 
+// Elimiar Expositor
+routerExpositor2.delete('/:id', (req, res) => {
+  var id = req.params.id
+  if(id === 0) {
+    respuesta = {
+     error: true,
+     codigo: 502,
+     mensaje: 'El id debe ser mayor que cero'
+    };
+   }
+
+  expositor.destroy( {
+      where: {
+        id: id
+      }
+    }).then(() => {
+
+      respuesta = {
+          error: false,
+          codigo: 200,
+          mensaje: "Registro Eliminado"
+         };
+      res.send(respuesta)
+
+  })
+    .catch(error => {
+      res.setHeader('Content-Type', 'application/json')
+      res.send(JSON.stringify(error))   
+   });
+
+})
+
 export default routerExpositor2;
