@@ -55,7 +55,7 @@ routerExpositor2.get('/', (req, res) => {
 // Expositores por Id
 routerExpositor2.get('/:id', (req, res) => { 
     var idexpo = req.params.id
-    expositor.findAll({
+    expositor.findOne({
         where: {
           id: idexpo
         }
