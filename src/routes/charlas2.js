@@ -43,11 +43,39 @@ var sequelize = new Sequelize('evento_tech_day', 'root', 'yadiel', {
     timestamps: false
   });
 
+  const expositor = sequelize.define(
+    "expositor",
+    {
+      // attributes
+      nombre: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      cuenta_github: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      correo: {
+        type: Sequelize.STRING,
+        allowNull: false
+      }
+    },{
+      timestamps: false
+    });
+
+    //expositor.hasMany(charla, {foreignKey: 'id'})
+    charla.belongsTo(expositor, {foreignKey: 'expositor_id'})
 
   // Lista de charlas
   routerCharla2.get('/', (req, res) => {
-    charla.findAll().then(charlas => {
+    charla.findAll({
+      include: [{
+        model: expositor,
+        required: true
+       }]
+    }).then(charlas => {
         res.setHeader('Content-Type', 'application/json')
+        //console.log(JSON.stringify(charlas))
         res.send(JSON.stringify(charlas)); 
         //console.log("All users:", JSON.stringify(expositores,null,4));
     })
@@ -61,10 +89,14 @@ var sequelize = new Sequelize('evento_tech_day', 'root', 'yadiel', {
 // charlas por Id
 routerCharla2.get('/:id', (req, res) => { 
     var idexpo = req.params.id
-    charla.findAll({
-        where: {
-          id: idexpo
-        }
+    charla.findOne(
+      {
+        include: [{
+          model: expositor,
+          required: true,
+          where: { id: idexpo}
+
+         }]
       }).then(charlas => {
         res.setHeader('Content-Type', 'application/json')
         res.send(JSON.stringify(charlas)); 
@@ -154,7 +186,36 @@ routerCharla2.put('/:id', (req, res) => {
 
 })  
 
+// Elimiar Charla
+routerCharla2.delete("/:id", (req, res) => {
+  var id = req.params.id;
+  if (id === 0) {
+    respuesta = {
+      error: true,
+      codigo: 502,
+      mensaje: "El id debe ser mayor que cero"
+    };
+  }
 
+  charla
+    .destroy({
+      where: {
+        id: id
+      }
+    })
+    .then(() => {
+      respuesta = {
+        error: false,
+        codigo: 200,
+        mensaje: "Registro Eliminado"
+      };
+      res.send(respuesta);
+    })
+    .catch(error => {
+      res.setHeader("Content-Type", "application/json");
+      res.send(JSON.stringify(error));
+    });
+});
 
 
 export default routerCharla2;
