@@ -1,136 +1,150 @@
-import express from 'express'
-import mysql from 'mysql'
+import express from "express";
+import mysql from "mysql";
 
 var routerCharla = express.Router();
 
 let respuesta = {
-    error: false,
-    codigo: 200,
-    mensaje: ''
+  error: false,
+  codigo: 200,
+  mensaje: ""
 };
 
 var connection = mysql.createConnection({
-    host     : '127.0.0.1',
-    user     : 'root',
-    password : 'yadiel',
-    database: 'evento_tech_day',
-    port: 3306
+  host: "127.0.0.1",
+  user: "root",
+  password: "yadiel",
+  database: "evento_tech_day",
+  port: 3306
+});
 
-  });
-  
 connection.connect();
 
 // Lista de charlas
-routerCharla.get('/', (req, res) => {
-    connection.query('SELECT * from charla', function(err, rows, fields) {
-        if (err) {
-            res.send('Error '+err);
-        } else {
-            var charlas = []
-            rows.forEach(c => {
-                charlas.push({ 
-                    id: c.id,
-                    name : c.nombre, 
-                    hora : c.hora,
-                    tags: c.tags,
-                    expositor_id: c.expositor_id
-                 })
-            });
-            res.setHeader('Content-Type', 'application/json')
-            res.send(JSON.stringify(charlas)); 
-        }
-    });
-})
+routerCharla.get("/", (req, res) => {
+  connection.query("SELECT * from charla", function(err, rows, fields) {
+    if (err) {
+      res.send("Error " + err);
+    } else {
+      var charlas = [];
+      rows.forEach(c => {
+        charlas.push({
+          id: c.id,
+          name: c.nombre,
+          hora: c.hora,
+          tags: c.tags,
+          expositor_id: c.expositor_id
+        });
+      });
+      res.setHeader("Content-Type", "application/json");
+      res.send(JSON.stringify(charlas));
+    }
+  });
+});
 
 // Charla por Id
-routerCharla.get('/:id', (req, res) => { 
-    connection.query('SELECT * from charla Where id=?',[req.params.id], function(err, rows, fields) {
-        if (err) {
-            res.send('Error '+err);
-        } else {
-            var charlas = []
-            rows.forEach(c => {
-                charlas.push({ 
-                    id: c.id,
-                    name : c.nombre, 
-                    hora : c.hora,
-                    tags: c.tags,
-                    expositor_id: c.expositor_id
-                 })
-            });
-            res.setHeader('Content-Type', 'application/json')
-            res.send(JSON.stringify(charlas)); 
-            // console.log('The solution is: ', rows[0].nombre);
-        }
-    });
-})
+routerCharla.get("/:id", (req, res) => {
+  connection.query("SELECT * from charla Where id=?", [req.params.id], function(
+    err,
+    rows,
+    fields
+  ) {
+    if (err) {
+      res.send("Error " + err);
+    } else {
+      var charlas = [];
+      rows.forEach(c => {
+        charlas.push({
+          id: c.id,
+          name: c.nombre,
+          hora: c.hora,
+          tags: c.tags,
+          expositor_id: c.expositor_id
+        });
+      });
+      res.setHeader("Content-Type", "application/json");
+      res.send(JSON.stringify(charlas));
+      // console.log('The solution is: ', rows[0].nombre);
+    }
+  });
+});
 
 // Registrar Charla
-routerCharla.post('/', (req, res) => {
+routerCharla.post("/", (req, res) => {
+  if (!req.body.nombre || !req.body.hora || req.body.expositor_id == 0) {
+    respuesta = {
+      error: true,
+      codigo: 502,
+      mensaje: "El campo nombre, hora y expositor son requeridos"
+    };
+  }
 
-    if(!req.body.nombre || !req.body.hora || req.body.expositor_id==0) {
+  var params = [
+    req.body.nombre,
+    req.body.tags,
+    req.body.expositor_id,
+    req.body.hora
+  ];
+
+  connection.query(
+    "INSERT INTO charla(nombre, tags, expositor_id, hora) VALUES(?,?,?,?)",
+    params,
+    function(err, rows, fields) {
+      if (err) {
         respuesta = {
-         error: true,
-         codigo: 502,
-         mensaje: 'El campo nombre, hora y expositor son requeridos'
+          error: true,
+          codigo: 500,
+          mensaje: "Error Interno" + err
         };
-       }
-
-    var params = [req.body.nombre, req.body.tags, req.body.expositor_id, req.body.hora];
-
-    connection.query('INSERT INTO charla(nombre, tags, expositor_id, hora) VALUES(?,?,?,?)',params, function(err, rows, fields) {
-        if (err) {
-            respuesta = {
-                error: true,
-                codigo: 500,
-                mensaje: 'Error Interno' + err
-               };
-        } else {
-            respuesta = {
-                error: false,
-                codigo: 200,
-                mensaje: "Registro creado!"
-               };
-        }
-        res.send(respuesta)
-    });
-
-})
-
-routerCharla.put('/:id', (req, res) => {
-    var id = req.params.id
-    var cuerpo = req.body
-
-    if(!cuerpo.nombre || !cuerpo.hora || cuerpo.expositor_id==0) {
+      } else {
         respuesta = {
-         error: true,
-         codigo: 502,
-         mensaje: 'El campo nombre, hora y expositor son requeridos'
+          error: false,
+          codigo: 200,
+          mensaje: "Registro creado!"
         };
-       }
+      }
+      res.send(respuesta);
+    }
+  );
+});
 
-    var params = [cuerpo.nombre,cuerpo.tags, cuerpo.hora, cuerpo.expositor_id,id];
-    var strUpdate = 'UPDATE charla SET  nombre = ?,tags = ?, hora = ?, expositor_id = ? WHERE id = ?'
+routerCharla.put("/:id", (req, res) => {
+  var id = req.params.id;
+  var cuerpo = req.body;
 
-    connection.query(strUpdate,params, function(err, rows, fields) {
-        if (err) {
-            respuesta = {
-                error: true,
-                codigo: 500, 
-                mensaje: 'Error Interno' + err
-               };
-        } else {
-            respuesta = {
-                error: false,
-                codigo: 200,
-                mensaje: "Registro Actualizado"
-               };
-        }
-        res.send(respuesta)
-    });    
+  if (!cuerpo.nombre || !cuerpo.hora || cuerpo.expositor_id == 0) {
+    respuesta = {
+      error: true,
+      codigo: 502,
+      mensaje: "El campo nombre, hora y expositor son requeridos"
+    };
+  }
 
-})
+  var params = [
+    cuerpo.nombre,
+    cuerpo.tags,
+    cuerpo.hora,
+    cuerpo.expositor_id,
+    id
+  ];
+  var strUpdate =
+    "UPDATE charla SET  nombre = ?,tags = ?, hora = ?, expositor_id = ? WHERE id = ?";
 
-
+  connection.query(strUpdate, params, function(err, rows, fields) {
+    if (err) {
+      respuesta = {
+        error: true,
+        codigo: 500,
+        mensaje: "Error Interno" + err
+      };
+    } else {
+      respuesta = {
+        error: false,
+        codigo: 200,
+        mensaje: "Registro Actualizado"
+      };
+    }
+    res.send(respuesta);
+  });
+});
 
 export default routerCharla;
